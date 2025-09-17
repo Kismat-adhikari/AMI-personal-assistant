@@ -242,8 +242,8 @@ def forgot_password():
         })
         
         if not user:
-            # For security, always return success message even if email doesn't exist
-            return jsonify({'message': 'If an account with this email exists, you will receive a password reset email shortly.'}), 200
+            # Return error if email doesn't exist
+            return jsonify({'message': 'Invalid email!'}), 404
         
         # Use the user's MongoDB ObjectId as the token
         userid = str(user['_id'])

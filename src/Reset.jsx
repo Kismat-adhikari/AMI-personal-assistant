@@ -26,6 +26,9 @@ function Reset({ onBack }) {
       if (response.ok) {
         setMessage('If an account with this email exists, you will receive a password reset email shortly.');
         setIsError(false);
+      } else if (response.status === 404) {
+        setMessage('Invalid email!');
+        setIsError(true);
       } else {
         setMessage(data.message || 'An error occurred');
         setIsError(true);
