@@ -1,0 +1,34 @@
+- src/Sidebar.jsx: Collapsible vertical sidebar navigation for desktop and tablet, with professional icons and improved UI. Sidebar collapse/expand shifts dashboard content accordingly. Used in the /ami dashboard route.
+Files:
+- app.py: Flask backend. Connects to MongoDB database 'ami' and collection 'users'. Provides example API endpoints for signup and getting all users.
+AMI React Project Structure Guide
+
+This file explains the purpose of each folder and file in your React project:
+
+Folders:
+- src/: Contains all your React source code (components, logic, etc.)
+- public/: Contains static files like index.html. The root for your app.
+
+
+Files:
+- package.json: Manages project dependencies and scripts. Use it to install packages and run commands.
+- vite.config.js: Configuration for Vite (your build tool).
+- src/main.jsx: Entry point for your React app. Renders the main App component.
+- src/App.jsx: Main hub for your app. Uses React Router for navigation between pages (Landing at '/', Login at '/login', Signup at '/signup').
+- src/Landing.jsx: The welcome/landing page users see first. Has buttons to go to Login or Signup.
+- src/Login.jsx: The login page UI. Includes a link to the signup page if the user doesn't have an account.
+- src/Signup.jsx: The signup page UI. Includes a link to the login page if the user already has an account. Sends user data to Flask backend, which saves it in MongoDB 'ami' database, 'users' collection.
+- public/index.html: The HTML file where your React app is injected.
+
+
+
+How to use:
+- Edit src/App.jsx to organize navigation and add features. Navigation now uses React Router, so each page has its own route:
+	- '/' for Landing page
+	- '/login' for Login page
+	- '/signup' for Signup page
+- Edit src/Landing.jsx, src/Login.jsx, src/Signup.jsx to update the UI for each page.
+- Run npm install to install dependencies (React, Vite, etc.).
+- Use npx vite to run the app locally.
+
+If you have questions about any file, just ask!
