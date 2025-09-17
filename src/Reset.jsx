@@ -24,7 +24,7 @@ function Reset({ onBack }) {
       const data = await response.json();
       
       if (response.ok) {
-        setMessage('If an account with this email exists, you will receive a password reset email shortly.');
+        setMessage('Password reset link has been sent to your email!');
         setIsError(false);
       } else if (response.status === 404) {
         setMessage('Invalid email!');

@@ -287,14 +287,14 @@ AMI Team
             mail.send(msg)
             print(f"✅ Password reset email sent successfully to {email}")
             
-            return jsonify({'message': 'If an account with this email exists, you will receive a password reset email shortly.'}), 200
+            return jsonify({'message': 'Password reset link has been sent to your email!'}), 200
             
         except Exception as email_error:
             print(f"❌ Email sending failed: {str(email_error)}")
             print(f"🔗 Reset link for testing: {reset_link}")
             
             # Still return success for security, but log the link for testing
-            return jsonify({'message': 'If an account with this email exists, you will receive a password reset email shortly.'}), 200
+            return jsonify({'message': 'Password reset link has been sent to your email!'}), 200
         
     except Exception as e:
         print(f"Forgot password error: {str(e)}")
