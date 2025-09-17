@@ -9,22 +9,18 @@ function Login({ onBack }) {
 
   useEffect(() => {
     // Initialize Google OAuth login button after component mounts
-    const timer = setTimeout(() => {
-      initializeGoogleLoginButton(
-        'google-signin-button',
-        (data) => {
-          setMessage(data.message);
-          console.log('Google login successful:', data);
-          navigate('/ami');
-        },
-        (error) => {
-          setMessage(error);
-          console.error('Google login failed:', error);
-        }
-      );
-    }, 1500);
-
-    return () => clearTimeout(timer);
+    initializeGoogleLoginButton(
+      'google-signin-button',
+      (data) => {
+        setMessage(data.message);
+        console.log('Google login successful:', data);
+        navigate('/ami');
+      },
+      (error) => {
+        setMessage(error);
+        console.error('Google login failed:', error);
+      }
+    );
   }, [navigate]);
 
   const handleChange = (e) => {
@@ -74,7 +70,6 @@ function Login({ onBack }) {
       
       {/* Google Login Button Container */}
       <div id="google-signin-button" style={{ marginBottom: '1.5rem', minHeight: '44px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{ color: '#757575', fontSize: '0.875rem' }}>Loading Google Sign-In...</div>
       </div>
 
       {/* Divider */}

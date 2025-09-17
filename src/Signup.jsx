@@ -9,24 +9,20 @@ function Signup({ onBack }) {
 
   useEffect(() => {
     // Initialize Google OAuth signup button after component mounts
-    const timer = setTimeout(() => {
-      initializeGoogleSignupButton(
-        'google-signup-button',
-        (data) => {
-          setMessage(data.message);
-          console.log('Google signup successful:', data);
-          setTimeout(() => {
-            navigate('/ami');
-          }, 1500);
-        },
-        (error) => {
-          setMessage(error);
-          console.error('Google signup failed:', error);
-        }
-      );
-    }, 1500);
-
-    return () => clearTimeout(timer);
+    initializeGoogleSignupButton(
+      'google-signup-button',
+      (data) => {
+        setMessage(data.message);
+        console.log('Google signup successful:', data);
+        setTimeout(() => {
+          navigate('/ami');
+        }, 1500);
+      },
+      (error) => {
+        setMessage(error);
+        console.error('Google signup failed:', error);
+      }
+    );
   }, [navigate]);
 
   const handleChange = (e) => {
@@ -77,7 +73,6 @@ function Signup({ onBack }) {
       
       {/* Google Signup Button Container */}
       <div id="google-signup-button" style={{ marginBottom: '1.5rem', minHeight: '44px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{ color: '#757575', fontSize: '0.875rem' }}>Loading Google Sign-Up...</div>
       </div>
 
       {/* Divider */}
