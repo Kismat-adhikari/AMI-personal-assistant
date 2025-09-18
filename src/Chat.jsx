@@ -125,15 +125,23 @@ function Chat() {
         setMessages([userMessage])
         setIsAnimating(false)
         setTimeout(() => {
-          const pythonExample = `# Simple example: print 100 lines of 'hey'
-for i in range(100):
-    print('hey')
-`
+          const cSnippet = `// C: print 'hey' 100 times using a for loop
+#include <stdio.h>
+
+int main(void) {
+    // Loop from 0 to 99 and print 'hey' each iteration
+    for (int i = 0; i < 100; i++) {
+        printf("hey\\n");
+    }
+    return 0;
+}`
 
           const aiResponse = {
             id: Date.now() + 1,
-            text: `Here's a quick Python example that prints 100 lines of 'hey'.`,
-            html: generateLabeledCodeBlock({ language: 'Python', content: pythonExample }),
+            text: `Explanation:\n\nThis C program includes stdio.h for printf, then runs a for-loop 100 times printing 'hey' each iteration. The comment inside the code uses C comment syntax (// for single-line).`,
+            html:
+              '<div class="assistant-explain"><strong>What this C program does:</strong> Prints the word <code>hey</code> 100 times using a for loop and <code>printf</code>.</div>' +
+              generateLabeledCodeBlock({ language: 'C', content: cSnippet }),
             sender: "assistant",
             timestamp: new Date(),
           }
@@ -143,14 +151,23 @@ for i in range(100):
     } else {
       setMessages((prev) => [...prev, userMessage])
       setTimeout(() => {
-        const pythonReply = `# Print "hey" 100 times
-for i in range(100):
-    print("hey")
-`
+        const cSnippet = `// C: print 'hey' 100 times using a for loop
+#include <stdio.h>
+
+int main(void) {
+    // Loop from 0 to 99 and print 'hey' each iteration
+    for (int i = 0; i < 100; i++) {
+        printf("hey\\n");
+    }
+    return 0;
+}`
+
         const aiResponse = {
           id: Date.now() + 1,
-          text: "Here's a quick Python snippet that demonstrates printing in a loop.",
-          html: generateLabeledCodeBlock({ language: 'Python', content: pythonReply }),
+          text: "Explanation:\n\nThis C program includes stdio.h for printf, then runs a for-loop 100 times printing 'hey' each iteration. The comment inside the code uses C comment syntax (// for single-line).",
+          html:
+            '<div class="assistant-explain"><strong>What this C program does:</strong> Prints the word <code>hey</code> 100 times using a for loop and <code>printf</code>.</div>' +
+            generateLabeledCodeBlock({ language: 'C', content: cSnippet }),
           sender: "assistant",
           timestamp: new Date(),
         }
