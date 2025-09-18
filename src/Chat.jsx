@@ -1169,12 +1169,12 @@ function Chat() {
             <div
               style={{
                 display: "flex",
-                gap: "1rem",
+                justifyContent: "center",
                 alignItems: "center",
-                maxWidth: "1000px",
-                margin: "0 auto",
-                marginLeft: isMobile ? "0" : "1rem",
-                marginRight: isMobile ? "0" : "1rem",
+                width: "100%",
+                boxSizing: "border-box",
+                paddingLeft: isMobile ? "0.75rem" : "0.75rem",
+                paddingRight: isMobile ? "0.75rem" : "0.75rem",
               }}
             >
               {/* Mic Button */}
@@ -1212,6 +1212,7 @@ function Chat() {
               <div
                 style={{
                   flex: 1,
+                  maxWidth: "1000px",
                   position: "relative",
                   background: "#ffffff",
                   borderRadius: "24px",
