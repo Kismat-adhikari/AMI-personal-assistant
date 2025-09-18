@@ -1,36 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar';
+import React from 'react';
+import Chat from './Chat';
 
 function Welcome() {
-  const [collapsed, setCollapsed] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      <div style={{
-        transition: 'margin-left 0.2s',
-        marginLeft: isMobile ? '0' : (collapsed ? '60px' : '220px'),
-        padding: isMobile ? '4rem 1rem 2rem' : '2rem',
-        paddingTop: isMobile ? '5rem' : '2rem',
-        flex: 1,
-        background: '#f6f8fa',
-        minHeight: '100vh',
-      }}>
-        <h1>Welcome to AMI!</h1>
-      </div>
-    </div>
-  );
+  return <Chat />;
 }
 // ...existing code...
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
@@ -81,3 +53,4 @@ function App() {
 }
 
 export default App;
+  

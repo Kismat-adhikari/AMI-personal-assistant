@@ -57,7 +57,14 @@ def signup():
         existing_user = users_collection.find_one({'email': email})
         
         if existing_user:
-            return jsonify({'message': 'An account with this email already exists'}), 409
+            auth_method = existing_user.get('auth_method', 'unknown')
+            if auth_method == 'google':
+                return jsonify({
+                    'message': f'An account with {email} already exists using Google Sign-In. Please sign in with Google instead.',
+                    'redirect': 'login'
+                }), 409
+            else:
+                return jsonify({'message': 'An account with this email already exists'}), 409
         
         # Hash the password before storing
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
@@ -127,22 +134,35 @@ def google_login():
         email = idinfo['email']
         name = idinfo['name']
         
-        # Check if user already exists (LOGIN - must exist)
-        existing_user = users_collection.find_one({'google_id': google_user_id})
+        # Check if user already exists with Google ID (LOGIN - must exist)
+        existing_google_user = users_collection.find_one({'google_id': google_user_id})
         
-        if existing_user:
-            # User exists, login successful
+        if existing_google_user:
+            # User exists with Google account, login successful
             return jsonify({
                 'message': 'Login successful',
                 'user': {
-                    'id': str(existing_user.get('_id')),
-                    'name': existing_user.get('name'),
-                    'email': existing_user.get('email')
+                    'id': str(existing_google_user.get('_id')),
+                    'name': existing_google_user.get('name'),
+                    'email': existing_google_user.get('email')
                 }
             }), 200
         else:
-            # User doesn't exist, cannot login
-            return jsonify({'message': 'No account found. Please sign up first.'}), 404
+            # Check if email exists with email/password auth method
+            existing_email_user = users_collection.find_one({'email': email, 'auth_method': 'email'})
+            
+            if existing_email_user:
+                # User has email account but no Google account linked
+                return jsonify({
+                    'message': f'An account with {email} already exists using email/password. Please log in with your email and password, or sign up with Google using a different email.',
+                    'redirect': 'login'
+                }), 409
+            else:
+                # User doesn't exist at all
+                return jsonify({
+                    'message': 'No account found. Please sign up first.',
+                    'redirect': 'signup'
+                }), 404
             
     except ValueError as e:
         print(f"Token validation error: {str(e)}")
@@ -187,12 +207,32 @@ def google_signup():
         email = idinfo['email']
         name = idinfo['name']
         
-        # Check if user already exists (SIGNUP - must not exist)
-        existing_user = users_collection.find_one({'google_id': google_user_id})
+        # Check if email already exists with ANY auth method
+        existing_email_user = users_collection.find_one({'email': email})
         
-        if existing_user:
-            # User already exists, cannot signup again
-            return jsonify({'message': 'Account already exists. Please login instead.'}), 409
+        if existing_email_user:
+            # Email already registered with different auth method
+            auth_method = existing_email_user.get('auth_method', 'unknown')
+            if auth_method == 'email':
+                return jsonify({
+                    'message': f'An account with {email} already exists using email/password. Please log in with your email and password instead.',
+                    'redirect': 'login'
+                }), 409
+            elif auth_method == 'google':
+                return jsonify({
+                    'message': 'Account already exists. Please log in instead.',
+                    'redirect': 'login'
+                }), 409
+        
+        # Check if user already exists with this Google ID (secondary check)
+        existing_google_user = users_collection.find_one({'google_id': google_user_id})
+        
+        if existing_google_user:
+            # User already exists with this Google account
+            return jsonify({
+                'message': 'Account already exists. Please log in instead.',
+                'redirect': 'login'
+            }), 409
         else:
             # New user, create account
             new_user = {
