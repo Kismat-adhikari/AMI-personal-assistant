@@ -6,6 +6,11 @@ node_modules/
 
 # Build output
 /dist
+build/
+
+# Python virtual environment
+.venv/
+venv/
 
 # Python virtual environment
 .venv/
