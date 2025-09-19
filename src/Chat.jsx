@@ -14,6 +14,7 @@ import {
   FaRobot,
   FaUser,
   FaCopy,
+  FaCheck,
   FaRedo,
 } from "react-icons/fa"
 
@@ -37,6 +38,7 @@ function Chat() {
   const chatContainerRef = useRef(null)
   const inputRef = useRef(null)
   const inputBarRef = useRef(null)
+  const [copiedMessageId, setCopiedMessageId] = useState(null)
 
   // Quick suggestion options
   const quickSuggestions = [
@@ -87,9 +89,9 @@ function Chat() {
         const container = chatContainerRef.current
         if (!bar || !container) return
         const rect = bar.getBoundingClientRect()
-        // Add extra 12px gap above the input bar
-        const padding = rect.height + 12
-        container.style.paddingBottom = padding + 'px'
+  // Add extra 48px gap above the input bar for even more spacing
+  const padding = rect.height + 48
+  container.style.paddingBottom = padding + 'px'
       } catch (e) {
         // ignore measurement errors
       }
@@ -105,7 +107,7 @@ function Chat() {
         obs.disconnect()
       } catch (e) {}
     }
-  }, [isMobile])
+  }, [isMobile, inputValue])
 
   const handleSendMessage = (messageText = null) => {
     const textToSend = messageText || inputValue.trim()
@@ -125,23 +127,41 @@ function Chat() {
         setMessages([userMessage])
         setIsAnimating(false)
         setTimeout(() => {
-          const cSnippet = `// C: print 'hey' 100 times using a for loop
-#include <stdio.h>
+          const essayText = `**The Next Decade of Artificial Intelligence: An Outlook**
 
-int main(void) {
-    // Loop from 0 to 99 and print 'hey' each iteration
-    for (int i = 0; i < 100; i++) {
-        printf("hey\\n");
-    }
-    return 0;
-}`
+Artificial Intelligence (AI) has moved from a niche research field to a core driver of global change in just a few decades. Today it powers everything from language translation and medical diagnostics to logistics and creative design. Looking ahead ten years, AI is poised to reshape society even more profoundly. While predicting the future is never exact, clear trends in computing power, data availability, and human needs suggest where AI is heading.
+
+1. From Narrow to Broader Intelligence: Most AI today is “narrow,” built to excel at specific tasks such as image recognition or text generation. Over the next decade, we can expect systems to become increasingly general—able to learn and reason across multiple domains. These models will be more adaptable, switching between activities like planning travel, tutoring students, and drafting code without being separately trained for each.
+
+2. Seamless Human–AI Collaboration: Rather than replacing people wholesale, AI will act as a collaborator. Professionals will work alongside digital teammates that understand context, remember preferences, and anticipate needs. Doctors may use AI to synthesize patient histories and suggest treatments; lawyers might rely on AI for instant analysis of complex case law; artists will co-create music, film, and visual art with tools that respond to mood and style.
+
+3. Personalized and Adaptive Experiences: Ten years from now, personalization will be far deeper than today’s targeted ads or playlists. AI systems will build rich models of individuals’ habits, health indicators, and goals—always with consent and strong privacy safeguards. Education could become a lifelong adaptive service, and healthcare will shift toward continuous, AI-guided monitoring.
+
+4. Ethical and Societal Challenges: Greater capability brings greater responsibility. Issues of bias, transparency, and accountability will remain central. Societies will need robust governance frameworks to prevent misuse in surveillance, warfare, or disinformation. Questions of data ownership, privacy, and the economic impact of automation will demand global cooperation.
+
+5. Infrastructure and Sustainability: AI’s hunger for computation and energy is already significant. Over the coming years, we will see a push toward more efficient algorithms, specialized hardware, and renewable energy to reduce the environmental footprint.
+
+Conclusion: By 2035, AI will not be a separate technology we “use,” but a woven part of daily life—embedded in homes, workplaces, cities, and even the natural environment. The choices we make now—about transparency, inclusivity, and sustainability—will determine whether AI in ten years is a tool of broad benefit or a source of deeper inequality.`
 
           const aiResponse = {
             id: Date.now() + 1,
-            text: `Explanation:\n\nThis C program includes stdio.h for printf, then runs a for-loop 100 times printing 'hey' each iteration. The comment inside the code uses C comment syntax (// for single-line).`,
+            text: essayText,
             html:
-              '<div class="assistant-explain"><strong>What this C program does:</strong> Prints the word <code>hey</code> 100 times using a for loop and <code>printf</code>.</div>' +
-              generateLabeledCodeBlock({ language: 'C', content: cSnippet }),
+              '<div class="assistant-explain">' +
+              '<h3>The Next Decade of Artificial Intelligence: An Outlook</h3>' +
+              '<p>Artificial Intelligence (AI) has moved from a niche research field to a core driver of global change in just a few decades. Today it powers everything from language translation and medical diagnostics to logistics and creative design. Looking ahead ten years, AI is poised to reshape society even more profoundly. While predicting the future is never exact, clear trends in computing power, data availability, and human needs suggest where AI is heading.</p>' +
+              '<h4>1. From Narrow to Broader Intelligence</h4>' +
+              '<p>Most AI today is “narrow,” built to excel at specific tasks such as image recognition or text generation. Over the next decade, systems will become increasingly general—able to learn and reason across multiple domains, switching between activities without separate training.</p>' +
+              '<h4>2. Seamless Human–AI Collaboration</h4>' +
+              '<p>Rather than replacing people wholesale, AI will act as a collaborator. Professionals will work alongside digital teammates that understand context, remember preferences, and anticipate needs.</p>' +
+              '<h4>3. Personalized and Adaptive Experiences</h4>' +
+              '<p>Personalization will be far deeper: AI systems will model individuals’ habits and goals—ideally with consent and strong privacy safeguards—enabling lifelong adaptive education and continuous healthcare monitoring.</p>' +
+              '<h4>4. Ethical and Societal Challenges</h4>' +
+              '<p>Greater capability brings responsibility. Issues of bias, transparency, and accountability will demand robust governance frameworks to prevent misuse and ensure equitable outcomes.</p>' +
+              '<h4>5. Infrastructure and Sustainability</h4>' +
+              '<p>Expect a push toward efficient algorithms, specialized hardware, and renewable energy to reduce AI’s environmental footprint.</p>' +
+              '<p><strong>Conclusion:</strong> By 2035, AI will be woven into daily life. The choices we make now—about transparency, inclusivity, and sustainability—will determine whether AI becomes a force for broad benefit or deeper inequality.</p>' +
+              '</div>',
             sender: "assistant",
             timestamp: new Date(),
           }
@@ -151,23 +171,41 @@ int main(void) {
     } else {
       setMessages((prev) => [...prev, userMessage])
       setTimeout(() => {
-        const cSnippet = `// C: print 'hey' 100 times using a for loop
-#include <stdio.h>
+        const essayText = `**The Next Decade of Artificial Intelligence: An Outlook**
 
-int main(void) {
-    // Loop from 0 to 99 and print 'hey' each iteration
-    for (int i = 0; i < 100; i++) {
-        printf("hey\\n");
-    }
-    return 0;
-}`
+Artificial Intelligence (AI) has moved from a niche research field to a core driver of global change in just a few decades. Today it powers everything from language translation and medical diagnostics to logistics and creative design. Looking ahead ten years, AI is poised to reshape society even more profoundly. While predicting the future is never exact, clear trends in computing power, data availability, and human needs suggest where AI is heading.
+
+1. From Narrow to Broader Intelligence: Most AI today is “narrow,” built to excel at specific tasks such as image recognition or text generation. Over the next decade, we can expect systems to become increasingly general—able to learn and reason across multiple domains. These models will be more adaptable, switching between activities like planning travel, tutoring students, and drafting code without being separately trained for each.
+
+2. Seamless Human–AI Collaboration: Rather than replacing people wholesale, AI will act as a collaborator. Professionals will work alongside digital teammates that understand context, remember preferences, and anticipate needs. Doctors may use AI to synthesize patient histories and suggest treatments; lawyers might rely on AI for instant analysis of complex case law; artists will co-create music, film, and visual art with tools that respond to mood and style.
+
+3. Personalized and Adaptive Experiences: Ten years from now, personalization will be far deeper than today’s targeted ads or playlists. AI systems will build rich models of individuals’ habits, health indicators, and goals—always with consent and strong privacy safeguards. Education could become a lifelong adaptive service, and healthcare will shift toward continuous, AI-guided monitoring.
+
+4. Ethical and Societal Challenges: Greater capability brings greater responsibility. Issues of bias, transparency, and accountability will remain central. Societies will need robust governance frameworks to prevent misuse in surveillance, warfare, or disinformation. Questions of data ownership, privacy, and the economic impact of automation will demand global cooperation.
+
+5. Infrastructure and Sustainability: AI’s hunger for computation and energy is already significant. Over the coming years, we will see a push toward more efficient algorithms, specialized hardware, and renewable energy to reduce the environmental footprint.
+
+Conclusion: By 2035, AI will not be a separate technology we “use,” but a woven part of daily life—embedded in homes, workplaces, cities, and even the natural environment. The choices we make now—about transparency, inclusivity, and sustainability—will determine whether AI in ten years is a tool of broad benefit or a source of deeper inequality.`
 
         const aiResponse = {
           id: Date.now() + 1,
-          text: "Explanation:\n\nThis C program includes stdio.h for printf, then runs a for-loop 100 times printing 'hey' each iteration. The comment inside the code uses C comment syntax (// for single-line).",
+          text: essayText,
           html:
-            '<div class="assistant-explain"><strong>What this C program does:</strong> Prints the word <code>hey</code> 100 times using a for loop and <code>printf</code>.</div>' +
-            generateLabeledCodeBlock({ language: 'C', content: cSnippet }),
+            '<div class="assistant-explain">' +
+            '<h3>The Next Decade of Artificial Intelligence: An Outlook</h3>' +
+            '<p>Artificial Intelligence (AI) has moved from a niche research field to a core driver of global change in just a few decades. Today it powers everything from language translation and medical diagnostics to logistics and creative design. Looking ahead ten years, AI is poised to reshape society even more profoundly. While predicting the future is never exact, clear trends in computing power, data availability, and human needs suggest where AI is heading.</p>' +
+            '<h4>1. From Narrow to Broader Intelligence</h4>' +
+            '<p>Most AI today is “narrow,” built to excel at specific tasks such as image recognition or text generation. Over the next decade, systems will become increasingly general—able to learn and reason across multiple domains, switching between activities without separate training.</p>' +
+            '<h4>2. Seamless Human–AI Collaboration</h4>' +
+            '<p>Rather than replacing people wholesale, AI will act as a collaborator. Professionals will work alongside digital teammates that understand context, remember preferences, and anticipate needs.</p>' +
+            '<h4>3. Personalized and Adaptive Experiences</h4>' +
+            '<p>Personalization will be far deeper: AI systems will model individuals’ habits and goals—ideally with consent and strong privacy safeguards—enabling lifelong adaptive education and continuous healthcare monitoring.</p>' +
+            '<h4>4. Ethical and Societal Challenges</h4>' +
+            '<p>Greater capability brings responsibility. Issues of bias, transparency, and accountability will demand robust governance frameworks to prevent misuse and ensure equitable outcomes.</p>' +
+            '<h4>5. Infrastructure and Sustainability</h4>' +
+            '<p>Expect a push toward efficient algorithms, specialized hardware, and renewable energy to reduce AI’s environmental footprint.</p>' +
+            '<p><strong>Conclusion:</strong> By 2035, AI will be woven into daily life. The choices we make now—about transparency, inclusivity, and sustainability—will determine whether AI becomes a force for broad benefit or deeper inequality.</p>' +
+            '</div>',
           sender: "assistant",
           timestamp: new Date(),
         }
@@ -219,6 +257,17 @@ int main(void) {
     const txt = document.createElement('textarea')
     txt.innerHTML = escaped
     return txt.value
+  }
+
+  // Helper: extract visible text from HTML string
+  const extractTextFromHtml = (html) => {
+    try {
+      const div = document.createElement('div')
+      div.innerHTML = html || ''
+      return div.innerText || div.textContent || ''
+    } catch (e) {
+      return ''
+    }
   }
 
   // Helper: convert markdown code fences and inline code to HTML
@@ -1346,7 +1395,12 @@ int main(void) {
                     >
                       <button
                         onClick={() => {
-                          navigator.clipboard.writeText(message.text)
+                          const toCopy = (message.text && message.text.trim()) || extractTextFromHtml(message.html) || ''
+                          if (!toCopy) return
+                          navigator.clipboard.writeText(toCopy).then(() => {
+                            setCopiedMessageId(message.id)
+                            setTimeout(() => setCopiedMessageId(null), 1800)
+                          })
                         }}
                         style={{
                           background: "rgba(107, 114, 128, 0.1)",
@@ -1369,9 +1423,13 @@ int main(void) {
                           e.target.style.backgroundColor = "rgba(107, 114, 128, 0.1)"
                           e.target.style.color = "#6b7280"
                         }}
-                        title="Copy message"
+                        title={copiedMessageId === message.id ? 'Copied' : 'Copy message'}
                       >
-                        <FaCopy size={isMobile ? 11 : 12} />
+                        {copiedMessageId === message.id ? (
+                          <FaCheck size={isMobile ? 12 : 14} color="#10b981" />
+                        ) : (
+                          <FaCopy size={isMobile ? 11 : 12} />
+                        )}
                       </button>
                       <button
                         onClick={() => {
@@ -1513,7 +1571,7 @@ int main(void) {
                     width: "100%",
                     minHeight: "24px",
                     maxHeight: "120px",
-                    padding: "1rem 60px 1rem 1.5rem",
+                    padding: "1rem 80px 1rem 1.5rem", // increased right padding to 80px
                     border: "none",
                     outline: "none",
                     fontSize: "0.95rem",
@@ -1526,8 +1584,12 @@ int main(void) {
                   }}
                   rows={1}
                   onInput={(e) => {
-                    e.target.style.height = "auto"
-                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"
+                    if (!e.target.value) {
+                      e.target.style.height = "24px";
+                    } else {
+                      e.target.style.height = "auto";
+                      e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                    }
                   }}
                   onFocus={(e) => {
                     e.target.parentElement.style.borderColor = "rgba(79, 70, 229, 0.3)"

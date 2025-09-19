@@ -1,0 +1,4 @@
+C:/Users/kisma/Desktop/Ami/.venv/Scripts/python.exe app.py
+
+
+npm start
