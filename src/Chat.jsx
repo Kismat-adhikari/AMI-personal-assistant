@@ -1167,60 +1167,70 @@ Conclusion: By 2035, AI will not be a separate technology we “use,” but a wo
                 </button>
 
                 {/* Input Field */}
-                <input
-                  ref={inputRef}
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything..."
-                  style={{
-                    flex: 1,
-                    border: "none",
-                    outline: "none",
-                    fontSize: "1rem",
-                    color: "#374151",
-                    backgroundColor: "transparent",
-                    fontFamily: "inherit",
-                    fontWeight: "400",
-                  }}
-                />
+                {/* Input Field (wrapped so text never touches the send button) */}
+                <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
+                  <input
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Ask me anything..."
+                    style={{
+                      flex: 1,
+                      border: "none",
+                      outline: "none",
+                      fontSize: "1rem",
+                      color: "#374151",
+                      backgroundColor: "transparent",
+                      fontFamily: "inherit",
+                      fontWeight: "400",
+                      // ensure input text never reaches the send button
+                      paddingRight: "56px",
+                    }}
+                  />
 
-                {/* Send Button */}
-                <button
-                  onClick={() => handleSendMessage()}
-                  disabled={!inputValue.trim()}
-                  style={{
-                    background: inputValue.trim()
-                      ? "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)"
-                      : "rgba(156, 163, 175, 0.3)",
-                    border: "none",
-                    borderRadius: "50%",
-                    width: "40px",
-                    height: "40px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: inputValue.trim() ? "pointer" : "not-allowed",
-                    transition: "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-                    color: inputValue.trim() ? "#ffffff" : "#9ca3af",
-                    boxShadow: inputValue.trim() ? "0 4px 20px rgba(79, 70, 229, 0.4)" : "none",
-                    flexShrink: 0,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (inputValue.trim()) {
-                      e.target.style.transform = "scale(1.05)"
-                      e.target.style.boxShadow = "0 8px 25px rgba(79, 70, 229, 0.5)"
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "scale(1)"
-                    if (inputValue.trim()) {
-                      e.target.style.boxShadow = "0 4px 20px rgba(79, 70, 229, 0.4)"
-                    }
-                  }}
-                >
-                  <FaPaperPlane size={14} />
-                </button>
+                  {/* Absolutely positioned send button so input text can't collide with it */}
+                  <button
+                    onClick={() => handleSendMessage()}
+                    disabled={!inputValue.trim()}
+                    style={{
+                      position: "absolute",
+                      right: "8px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: inputValue.trim()
+                        ? "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)"
+                        : "rgba(156, 163, 175, 0.3)",
+                      border: "none",
+                      borderRadius: "50%",
+                      width: "40px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: inputValue.trim() ? "pointer" : "not-allowed",
+                      transition: "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                      color: inputValue.trim() ? "#ffffff" : "#9ca3af",
+                      boxShadow: inputValue.trim() ? "0 4px 20px rgba(79, 70, 229, 0.4)" : "none",
+                      flexShrink: 0,
+                      zIndex: 2,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (inputValue.trim()) {
+                        e.target.style.transform = "translateY(-50%) scale(1.05)"
+                        e.target.style.boxShadow = "0 8px 25px rgba(79, 70, 229, 0.5)"
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = "translateY(-50%) scale(1)"
+                      if (inputValue.trim()) {
+                        e.target.style.boxShadow = "0 4px 20px rgba(79, 70, 229, 0.4)"
+                      }
+                    }}
+                  >
+                    <FaPaperPlane size={14} />
+                  </button>
+                </div>
               </div>
 
               {/* Quick Suggestions */}
@@ -1548,7 +1558,7 @@ Conclusion: By 2035, AI will not be a separate technology we “use,” but a wo
                 <FaMicrophone size={16} />
               </button>
 
-              {/* Input Field Container */}
+              {/* Input Field Container (textarea padded to avoid send button) */}
               <div
                 style={{
                   flex: 1,
@@ -1571,7 +1581,7 @@ Conclusion: By 2035, AI will not be a separate technology we “use,” but a wo
                     width: "100%",
                     minHeight: "24px",
                     maxHeight: "120px",
-                    padding: "1rem 80px 1rem 1.5rem", // increased right padding to 80px
+                    padding: "1rem 72px 1rem 1.5rem", // right padding leaves space for the button
                     border: "none",
                     outline: "none",
                     fontSize: "0.95rem",
@@ -1601,13 +1611,13 @@ Conclusion: By 2035, AI will not be a separate technology we “use,” but a wo
                   }}
                 />
 
-                {/* Send Button */}
+                {/* Send Button (absolute inside the container) */}
                 <button
                   onClick={() => handleSendMessage()}
                   disabled={!inputValue.trim()}
                   style={{
                     position: "absolute",
-                    right: "8px",
+                    right: "12px",
                     top: "50%",
                     transform: "translateY(-50%)",
                     background: inputValue.trim()
@@ -1624,6 +1634,7 @@ Conclusion: By 2035, AI will not be a separate technology we “use,” but a wo
                     transition: "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
                     color: inputValue.trim() ? "#ffffff" : "#9ca3af",
                     boxShadow: inputValue.trim() ? "0 4px 15px rgba(79, 70, 229, 0.4)" : "none",
+                    zIndex: 2,
                   }}
                   onMouseEnter={(e) => {
                     if (inputValue.trim()) {
