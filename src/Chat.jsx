@@ -47,68 +47,7 @@ function Chat() {
     "Set up reminders",
     "Plan my workday",
   ]
-
-  useEffect(() => {
-    const checkScreenSize = () => {
-      const newIsMobile = window.innerWidth <= 768
-      setIsMobile(newIsMobile)
-
-      if (!newIsMobile && mobileMenuOpen) {
-        setMobileMenuOpen(false)
-      }
-    }
-
-    checkScreenSize()
-    window.addEventListener("resize", checkScreenSize)
-    return () => window.removeEventListener("resize", checkScreenSize)
-  }, [mobileMenuOpen])
-
-  const handleLogout = () => {
-    window.location.href = "/login"
-  }
-
-  const scrollToBottom = () => {
-    if (chatContainerRef.current) {
-      const container = chatContainerRef.current
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: "smooth",
-      })
-    }
-  }
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  // Measure the bottom input bar and set padding on the chat container so messages never touch the input
-  useEffect(() => {
-    const setPadding = () => {
-      try {
-        const bar = inputBarRef.current
-        const container = chatContainerRef.current
-        if (!bar || !container) return
-        const rect = bar.getBoundingClientRect()
-  // Add extra 48px gap above the input bar for even more spacing
-  const padding = rect.height + 48
-  container.style.paddingBottom = padding + 'px'
-      } catch (e) {
-        // ignore measurement errors
-      }
-    }
-
-    setPadding()
-    window.addEventListener('resize', setPadding)
-    const obs = new ResizeObserver(setPadding)
-    if (inputBarRef.current) obs.observe(inputBarRef.current)
-    return () => {
-      window.removeEventListener('resize', setPadding)
-      try {
-        obs.disconnect()
-      } catch (e) {}
-    }
-  }, [isMobile, inputValue])
-
+  
   const handleSendMessage = (messageText = null) => {
     const textToSend = messageText || inputValue.trim()
     if (!textToSend) return
@@ -116,104 +55,28 @@ function Chat() {
     const userMessage = {
       id: Date.now(),
       text: textToSend,
-      sender: "user",
+      sender: 'user',
       timestamp: new Date(),
     }
 
-    if (!hasStartedChat) {
-      setIsAnimating(true)
-      setHasStartedChat(true)
-      setTimeout(() => {
-        setMessages([userMessage])
-        setIsAnimating(false)
-        setTimeout(() => {
-          const essayText = `**The Next Decade of Artificial Intelligence: An Outlook**
+    // Start chat on first message
+    if (!hasStartedChat) setHasStartedChat(true)
 
-Artificial Intelligence (AI) has moved from a niche research field to a core driver of global change in just a few decades. Today it powers everything from language translation and medical diagnostics to logistics and creative design. Looking ahead ten years, AI is poised to reshape society even more profoundly. While predicting the future is never exact, clear trends in computing power, data availability, and human needs suggest where AI is heading.
+    setMessages((prev) => [...prev, userMessage])
 
-1. From Narrow to Broader Intelligence: Most AI today is “narrow,” built to excel at specific tasks such as image recognition or text generation. Over the next decade, we can expect systems to become increasingly general—able to learn and reason across multiple domains. These models will be more adaptable, switching between activities like planning travel, tutoring students, and drafting code without being separately trained for each.
+    // Simulate assistant response after a short delay
+    setTimeout(() => {
+      const aiText = `Thanks — I received: ${textToSend.slice(0, 200)}`
+      const aiResponse = {
+        id: Date.now() + 1,
+        text: aiText,
+        sender: 'assistant',
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, aiResponse])
+    }, 600)
 
-2. Seamless Human–AI Collaboration: Rather than replacing people wholesale, AI will act as a collaborator. Professionals will work alongside digital teammates that understand context, remember preferences, and anticipate needs. Doctors may use AI to synthesize patient histories and suggest treatments; lawyers might rely on AI for instant analysis of complex case law; artists will co-create music, film, and visual art with tools that respond to mood and style.
-
-3. Personalized and Adaptive Experiences: Ten years from now, personalization will be far deeper than today’s targeted ads or playlists. AI systems will build rich models of individuals’ habits, health indicators, and goals—always with consent and strong privacy safeguards. Education could become a lifelong adaptive service, and healthcare will shift toward continuous, AI-guided monitoring.
-
-4. Ethical and Societal Challenges: Greater capability brings greater responsibility. Issues of bias, transparency, and accountability will remain central. Societies will need robust governance frameworks to prevent misuse in surveillance, warfare, or disinformation. Questions of data ownership, privacy, and the economic impact of automation will demand global cooperation.
-
-5. Infrastructure and Sustainability: AI’s hunger for computation and energy is already significant. Over the coming years, we will see a push toward more efficient algorithms, specialized hardware, and renewable energy to reduce the environmental footprint.
-
-Conclusion: By 2035, AI will not be a separate technology we “use,” but a woven part of daily life—embedded in homes, workplaces, cities, and even the natural environment. The choices we make now—about transparency, inclusivity, and sustainability—will determine whether AI in ten years is a tool of broad benefit or a source of deeper inequality.`
-
-          const aiResponse = {
-            id: Date.now() + 1,
-            text: essayText,
-            html:
-              '<div class="assistant-explain">' +
-              '<h3>The Next Decade of Artificial Intelligence: An Outlook</h3>' +
-              '<p>Artificial Intelligence (AI) has moved from a niche research field to a core driver of global change in just a few decades. Today it powers everything from language translation and medical diagnostics to logistics and creative design. Looking ahead ten years, AI is poised to reshape society even more profoundly. While predicting the future is never exact, clear trends in computing power, data availability, and human needs suggest where AI is heading.</p>' +
-              '<h4>1. From Narrow to Broader Intelligence</h4>' +
-              '<p>Most AI today is “narrow,” built to excel at specific tasks such as image recognition or text generation. Over the next decade, systems will become increasingly general—able to learn and reason across multiple domains, switching between activities without separate training.</p>' +
-              '<h4>2. Seamless Human–AI Collaboration</h4>' +
-              '<p>Rather than replacing people wholesale, AI will act as a collaborator. Professionals will work alongside digital teammates that understand context, remember preferences, and anticipate needs.</p>' +
-              '<h4>3. Personalized and Adaptive Experiences</h4>' +
-              '<p>Personalization will be far deeper: AI systems will model individuals’ habits and goals—ideally with consent and strong privacy safeguards—enabling lifelong adaptive education and continuous healthcare monitoring.</p>' +
-              '<h4>4. Ethical and Societal Challenges</h4>' +
-              '<p>Greater capability brings responsibility. Issues of bias, transparency, and accountability will demand robust governance frameworks to prevent misuse and ensure equitable outcomes.</p>' +
-              '<h4>5. Infrastructure and Sustainability</h4>' +
-              '<p>Expect a push toward efficient algorithms, specialized hardware, and renewable energy to reduce AI’s environmental footprint.</p>' +
-              '<p><strong>Conclusion:</strong> By 2035, AI will be woven into daily life. The choices we make now—about transparency, inclusivity, and sustainability—will determine whether AI becomes a force for broad benefit or deeper inequality.</p>' +
-              '</div>',
-            sender: "assistant",
-            timestamp: new Date(),
-          }
-          setMessages((prev) => [...prev, aiResponse])
-        }, 600)
-      }, 400)
-    } else {
-      setMessages((prev) => [...prev, userMessage])
-      setTimeout(() => {
-        const essayText = `**The Next Decade of Artificial Intelligence: An Outlook**
-
-Artificial Intelligence (AI) has moved from a niche research field to a core driver of global change in just a few decades. Today it powers everything from language translation and medical diagnostics to logistics and creative design. Looking ahead ten years, AI is poised to reshape society even more profoundly. While predicting the future is never exact, clear trends in computing power, data availability, and human needs suggest where AI is heading.
-
-1. From Narrow to Broader Intelligence: Most AI today is “narrow,” built to excel at specific tasks such as image recognition or text generation. Over the next decade, we can expect systems to become increasingly general—able to learn and reason across multiple domains. These models will be more adaptable, switching between activities like planning travel, tutoring students, and drafting code without being separately trained for each.
-
-2. Seamless Human–AI Collaboration: Rather than replacing people wholesale, AI will act as a collaborator. Professionals will work alongside digital teammates that understand context, remember preferences, and anticipate needs. Doctors may use AI to synthesize patient histories and suggest treatments; lawyers might rely on AI for instant analysis of complex case law; artists will co-create music, film, and visual art with tools that respond to mood and style.
-
-3. Personalized and Adaptive Experiences: Ten years from now, personalization will be far deeper than today’s targeted ads or playlists. AI systems will build rich models of individuals’ habits, health indicators, and goals—always with consent and strong privacy safeguards. Education could become a lifelong adaptive service, and healthcare will shift toward continuous, AI-guided monitoring.
-
-4. Ethical and Societal Challenges: Greater capability brings greater responsibility. Issues of bias, transparency, and accountability will remain central. Societies will need robust governance frameworks to prevent misuse in surveillance, warfare, or disinformation. Questions of data ownership, privacy, and the economic impact of automation will demand global cooperation.
-
-5. Infrastructure and Sustainability: AI’s hunger for computation and energy is already significant. Over the coming years, we will see a push toward more efficient algorithms, specialized hardware, and renewable energy to reduce the environmental footprint.
-
-Conclusion: By 2035, AI will not be a separate technology we “use,” but a woven part of daily life—embedded in homes, workplaces, cities, and even the natural environment. The choices we make now—about transparency, inclusivity, and sustainability—will determine whether AI in ten years is a tool of broad benefit or a source of deeper inequality.`
-
-        const aiResponse = {
-          id: Date.now() + 1,
-          text: essayText,
-          html:
-            '<div class="assistant-explain">' +
-            '<h3>The Next Decade of Artificial Intelligence: An Outlook</h3>' +
-            '<p>Artificial Intelligence (AI) has moved from a niche research field to a core driver of global change in just a few decades. Today it powers everything from language translation and medical diagnostics to logistics and creative design. Looking ahead ten years, AI is poised to reshape society even more profoundly. While predicting the future is never exact, clear trends in computing power, data availability, and human needs suggest where AI is heading.</p>' +
-            '<h4>1. From Narrow to Broader Intelligence</h4>' +
-            '<p>Most AI today is “narrow,” built to excel at specific tasks such as image recognition or text generation. Over the next decade, systems will become increasingly general—able to learn and reason across multiple domains, switching between activities without separate training.</p>' +
-            '<h4>2. Seamless Human–AI Collaboration</h4>' +
-            '<p>Rather than replacing people wholesale, AI will act as a collaborator. Professionals will work alongside digital teammates that understand context, remember preferences, and anticipate needs.</p>' +
-            '<h4>3. Personalized and Adaptive Experiences</h4>' +
-            '<p>Personalization will be far deeper: AI systems will model individuals’ habits and goals—ideally with consent and strong privacy safeguards—enabling lifelong adaptive education and continuous healthcare monitoring.</p>' +
-            '<h4>4. Ethical and Societal Challenges</h4>' +
-            '<p>Greater capability brings responsibility. Issues of bias, transparency, and accountability will demand robust governance frameworks to prevent misuse and ensure equitable outcomes.</p>' +
-            '<h4>5. Infrastructure and Sustainability</h4>' +
-            '<p>Expect a push toward efficient algorithms, specialized hardware, and renewable energy to reduce AI’s environmental footprint.</p>' +
-            '<p><strong>Conclusion:</strong> By 2035, AI will be woven into daily life. The choices we make now—about transparency, inclusivity, and sustainability—will determine whether AI becomes a force for broad benefit or deeper inequality.</p>' +
-            '</div>',
-          sender: "assistant",
-          timestamp: new Date(),
-        }
-        setMessages((prev) => [...prev, aiResponse])
-      }, 600)
-    }
-
-    setInputValue("")
+    setInputValue('')
   }
 
   const handleSuggestionClick = (suggestion) => {
@@ -229,6 +92,16 @@ Conclusion: By 2035, AI will not be a separate technology we “use,” but a wo
 
   const handleMicClick = () => {
     console.log("Mic clicked - implement voice recording")
+  }
+
+  // Safe logout placeholder to avoid runtime ReferenceError when button is clicked
+  const handleLogout = () => {
+    // Minimal non-destructive behavior: reset chat and log action
+    console.log('handleLogout invoked — clearing session state')
+    setMessages([])
+    setInputValue('')
+    setHasStartedChat(false)
+    // In a real app, you'd call auth sign-out / redirect here
   }
 
   // Helper: generate a labeled code block (language label, code area, copy control)
@@ -953,6 +826,32 @@ Conclusion: By 2035, AI will not be a separate technology we “use,” but a wo
     return () => container.removeEventListener('click', onClick)
   }, [messages])
 
+  // Ensure textarea height resets when content is cleared programmatically or by user
+  useEffect(() => {
+    const ta = inputRef.current
+    if (!ta) return
+
+    // choose min heights consistent with the two implementations
+    const minHeight = hasStartedChat ? 40 : 36
+
+    // If input is empty, set to the min height; otherwise let it size naturally
+    if (!inputValue) {
+      ta.style.height = minHeight + 'px'
+    } else {
+      // ensure it fits content if there is any
+      ta.style.height = 'auto'
+      ta.style.height = Math.min(ta.scrollHeight, hasStartedChat ? 220 : 120) + 'px'
+    }
+  }, [inputValue, hasStartedChat])
+
+  // Autofocus input when chat starts
+  useEffect(() => {
+    if (hasStartedChat && inputRef.current) {
+      // slight timeout to ensure textarea is mounted and any layout changes applied
+      setTimeout(() => inputRef.current.focus(), 50)
+    }
+  }, [hasStartedChat])
+
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
       {renderSidebar()}
@@ -1118,119 +1017,121 @@ Conclusion: By 2035, AI will not be a separate technology we “use,” but a wo
                 </p>
               </div>
 
-              {/* Centered Input Row */}
+              {/* Input Row - single shared textarea used for both landing and chat */}
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "1rem",
-                  background: "#ffffff",
-                  borderRadius: "50px",
-                  padding: "1rem 1.5rem",
-                  boxShadow: "0 12px 40px rgba(0, 0, 0, 0.15)",
-                  border: "2px solid rgba(79, 70, 229, 0.1)",
-                  maxWidth: "500px",
-                  margin: "0 auto",
-                  transform: isAnimating ? "scale(0.98)" : "scale(1)",
-                  transition: "all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                  // center overlay when landing, fixed bottom when in chat
+                  position: hasStartedChat ? 'static' : 'relative',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  // outer landing container already provides padding; keep this wrapper tight
+                  padding: 0,
                 }}
               >
-                {/* Mic Button */}
-                <button
-                  onClick={handleMicClick}
-                  style={{
-                    background: "rgba(107, 114, 128, 0.1)",
-                    border: "none",
-                    borderRadius: "50%",
-                    width: "40px",
-                    height: "40px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    color: "#6b7280",
-                    flexShrink: 0,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = "rgba(79, 70, 229, 0.1)"
-                    e.target.style.color = "#4f46e5"
-                    e.target.style.transform = "scale(1.05)"
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = "rgba(107, 114, 128, 0.1)"
-                    e.target.style.color = "#6b7280"
-                    e.target.style.transform = "scale(1)"
-                  }}
-                >
-                  <FaMicrophone size={16} />
-                </button>
-
-                {/* Input Field */}
-                {/* Input Field (wrapped so text never touches the send button) */}
-                <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
-                  <input
-                    ref={inputRef}
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Ask me anything..."
+                  <div
+                    className="landing-input-wrapper"
                     style={{
-                      flex: 1,
-                      border: "none",
-                      outline: "none",
-                      fontSize: "1rem",
-                      color: "#374151",
-                      backgroundColor: "transparent",
-                      fontFamily: "inherit",
-                      fontWeight: "400",
-                      // ensure input text never reaches the send button
-                      paddingRight: "56px",
-                    }}
-                  />
-
-                  {/* Absolutely positioned send button so input text can't collide with it */}
-                  <button
-                    onClick={() => handleSendMessage()}
-                    disabled={!inputValue.trim()}
-                    style={{
-                      position: "absolute",
-                      right: "8px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: inputValue.trim()
-                        ? "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)"
-                        : "rgba(156, 163, 175, 0.3)",
-                      border: "none",
-                      borderRadius: "50%",
-                      width: "40px",
-                      height: "40px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: inputValue.trim() ? "pointer" : "not-allowed",
-                      transition: "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-                      color: inputValue.trim() ? "#ffffff" : "#9ca3af",
-                      boxShadow: inputValue.trim() ? "0 4px 20px rgba(79, 70, 229, 0.4)" : "none",
-                      flexShrink: 0,
-                      zIndex: 2,
-                    }}
-                    onMouseEnter={(e) => {
-                      if (inputValue.trim()) {
-                        e.target.style.transform = "translateY(-50%) scale(1.05)"
-                        e.target.style.boxShadow = "0 8px 25px rgba(79, 70, 229, 0.5)"
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.transform = "translateY(-50%) scale(1)"
-                      if (inputValue.trim()) {
-                        e.target.style.boxShadow = "0 4px 20px rgba(79, 70, 229, 0.4)"
-                      }
+                      alignItems: 'center',
+                      gap: '1rem',
+                      background: '#ffffff',
+                      borderRadius: hasStartedChat ? '24px' : '30px',
+                      padding: hasStartedChat ? '1rem 0.75rem' : '0.75rem 1rem',
+                      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+                      border: '1px solid rgba(79, 70, 229, 0.08)',
+                      maxWidth: hasStartedChat ? '1000px' : '520px',
+                      width: '100%',
+                      margin: hasStartedChat ? '0 auto' : '0 auto',
+                      transform: isAnimating ? 'scale(0.995)' : 'scale(1)',
+                      transition: 'all 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                     }}
                   >
-                    <FaPaperPlane size={14} />
-                  </button>
-                </div>
+                    {/* Grid layout for landing input: mic | textarea | send - prevents overlap */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 40px', alignItems: 'center', gap: '10px', padding: '6px' }}>
+                      <button
+                        onClick={handleMicClick}
+                        style={{
+                          background: 'rgba(107, 114, 128, 0.1)',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '36px',
+                          height: '36px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          color: '#6b7280',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(79, 70, 229, 0.08)'
+                          e.currentTarget.style.color = '#4f46e5'
+                          e.currentTarget.style.transform = 'scale(1.05)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(107, 114, 128, 0.1)'
+                          e.currentTarget.style.color = '#6b7280'
+                          e.currentTarget.style.transform = 'scale(1)'
+                        }}
+                        aria-label="Start voice input"
+                      >
+                        <FaMicrophone size={14} />
+                      </button>
+
+                      <textarea
+                        ref={inputRef}
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder={'Ask me anything...'}
+                        style={{
+                          width: '100%',
+                          minHeight: '36px',
+                          maxHeight: '140px',
+                          padding: '10px 8px',
+                          border: 'none',
+                          outline: 'none',
+                          fontSize: '0.98rem',
+                          lineHeight: '1.4',
+                          resize: 'none',
+                          backgroundColor: 'transparent',
+                          fontFamily: 'inherit',
+                          color: '#374151',
+                          fontWeight: '400',
+                        }}
+                        rows={1}
+                        onInput={(e) => {
+                          if (!e.target.value) {
+                            e.target.style.height = '36px'
+                          } else {
+                            e.target.style.height = 'auto'
+                            e.target.style.height = Math.min(e.target.scrollHeight, 140) + 'px'
+                          }
+                        }}
+                        /* focus/blur handled via .landing-input-wrapper:focus-within in CSS */
+                      />
+
+                      <button
+                        onClick={() => handleSendMessage()}
+                        disabled={!inputValue.trim()}
+                        style={{
+                          background: inputValue.trim() ? 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' : 'rgba(156, 163, 175, 0.3)',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '36px',
+                          height: '36px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: inputValue.trim() ? 'pointer' : 'not-allowed',
+                          transition: 'all 0.18s ease',
+                          color: inputValue.trim() ? '#ffffff' : '#9ca3af',
+                        }}
+                        aria-label="Send message"
+                      >
+                        <FaPaperPlane size={12} />
+                      </button>
+                    </div>
+                  </div>
               </div>
 
               {/* Quick Suggestions */}
@@ -1527,38 +1428,9 @@ Conclusion: By 2035, AI will not be a separate technology we “use,” but a wo
                 paddingRight: isMobile ? "0.75rem" : "0.75rem",
               }}
             >
-              {/* Mic Button */}
-              <button
-                onClick={handleMicClick}
-                style={{
-                  background: "rgba(107, 114, 128, 0.1)",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: "44px",
-                  height: "44px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  color: "#6b7280",
-                  flexShrink: 0,
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = "rgba(79, 70, 229, 0.1)"
-                  e.target.style.color = "#4f46e5"
-                  e.target.style.transform = "scale(1.05)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = "rgba(107, 114, 128, 0.1)"
-                  e.target.style.color = "#6b7280"
-                  e.target.style.transform = "scale(1)"
-                }}
-              >
-                <FaMicrophone size={16} />
-              </button>
+              {/* Mic Button moved inside input container (visual: inside the rounded input) */}
 
-              {/* Input Field Container (textarea padded to avoid send button) */}
+              {/* Input Field Container */}
               <div
                 style={{
                   flex: 1,
@@ -1571,86 +1443,100 @@ Conclusion: By 2035, AI will not be a separate technology we “use,” but a wo
                   overflow: "hidden",
                 }}
               >
-                <textarea
-                  ref={inputRef}
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
-                  style={{
-                    width: "100%",
-                    minHeight: "24px",
-                    maxHeight: "120px",
-                    padding: "1rem 72px 1rem 1.5rem", // right padding leaves space for the button
-                    border: "none",
-                    outline: "none",
-                    fontSize: "0.95rem",
-                    lineHeight: "1.5",
-                    resize: "none",
-                    backgroundColor: "transparent",
-                    fontFamily: "inherit",
-                    color: "#374151",
-                    fontWeight: "400",
-                  }}
-                  rows={1}
-                  onInput={(e) => {
-                    if (!e.target.value) {
-                      e.target.style.height = "24px";
-                    } else {
-                      e.target.style.height = "auto";
-                      e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
-                    }
-                  }}
-                  onFocus={(e) => {
-                    e.target.parentElement.style.borderColor = "rgba(79, 70, 229, 0.3)"
-                    e.target.parentElement.style.boxShadow = "0 4px 20px rgba(79, 70, 229, 0.15)"
-                  }}
-                  onBlur={(e) => {
-                    e.target.parentElement.style.borderColor = "rgba(79, 70, 229, 0.1)"
-                    e.target.parentElement.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.08)"
-                  }}
-                />
+                {/* Grid layout: mic | textarea | send - avoids overlap */}
+                <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr 44px', alignItems: 'center', gap: '12px', padding: '8px' }}>
+                  <button
+                    onClick={handleMicClick}
+                    style={{
+                      background: 'rgba(107, 114, 128, 0.08)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '36px',
+                      height: '36px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      color: '#6b7280',
+                    }}
+                    aria-label="Start voice input"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(79, 70, 229, 0.08)'
+                      e.currentTarget.style.color = '#4f46e5'
+                      e.currentTarget.style.transform = 'scale(1.05)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(107, 114, 128, 0.08)'
+                      e.currentTarget.style.color = '#6b7280'
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
+                  >
+                    <FaMicrophone size={14} />
+                  </button>
 
-                {/* Send Button (absolute inside the container) */}
-                <button
-                  onClick={() => handleSendMessage()}
-                  disabled={!inputValue.trim()}
-                  style={{
-                    position: "absolute",
-                    right: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: inputValue.trim()
-                      ? "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)"
-                      : "rgba(156, 163, 175, 0.3)",
-                    border: "none",
-                    borderRadius: "50%",
-                    width: "36px",
-                    height: "36px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: inputValue.trim() ? "pointer" : "not-allowed",
-                    transition: "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-                    color: inputValue.trim() ? "#ffffff" : "#9ca3af",
-                    boxShadow: inputValue.trim() ? "0 4px 15px rgba(79, 70, 229, 0.4)" : "none",
-                    zIndex: 2,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (inputValue.trim()) {
-                      e.target.style.transform = "translateY(-50%) scale(1.05)"
-                      e.target.style.boxShadow = "0 6px 20px rgba(79, 70, 229, 0.5)"
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "translateY(-50%) scale(1)"
-                    if (inputValue.trim()) {
-                      e.target.style.boxShadow = "0 4px 15px rgba(79, 70, 229, 0.4)"
-                    }
-                  }}
-                >
-                  <FaPaperPlane size={12} />
-                </button>
+                  <textarea
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type your message..."
+                    style={{
+                      width: '100%',
+                      minHeight: '40px',
+                      maxHeight: '220px',
+                      padding: '12px 8px',
+                      border: 'none',
+                      outline: 'none',
+                      fontSize: '0.95rem',
+                      lineHeight: '1.4',
+                      resize: 'none',
+                      backgroundColor: 'transparent',
+                      fontFamily: 'inherit',
+                      color: '#374151',
+                      fontWeight: '400',
+                    }}
+                    rows={1}
+                    onInput={(e) => {
+                      if (!e.target.value) {
+                        e.target.style.height = '40px'
+                      } else {
+                        e.target.style.height = 'auto'
+                        e.target.style.height = Math.min(e.target.scrollHeight, 220) + 'px'
+                      }
+                    }}
+                    onFocus={(e) => {
+                      e.target.parentElement.parentElement.style.borderColor = 'rgba(79, 70, 229, 0.3)'
+                      e.target.parentElement.parentElement.style.boxShadow = '0 4px 20px rgba(79, 70, 229, 0.15)'
+                    }}
+                    onBlur={(e) => {
+                      e.target.parentElement.parentElement.style.borderColor = 'rgba(79, 70, 229, 0.1)'
+                      e.target.parentElement.parentElement.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)'
+                    }}
+                  />
+
+                  <button
+                    onClick={() => handleSendMessage()}
+                    disabled={!inputValue.trim()}
+                    style={{
+                      background: inputValue.trim() ? 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' : 'rgba(156, 163, 175, 0.3)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '36px',
+                      height: '36px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: inputValue.trim() ? 'pointer' : 'not-allowed',
+                      transition: 'all 0.18s ease',
+                      color: inputValue.trim() ? '#ffffff' : '#9ca3af',
+                      boxShadow: inputValue.trim() ? '0 4px 15px rgba(79, 70, 229, 0.4)' : 'none',
+                    }}
+                    aria-label="Send message"
+                  >
+                    <FaPaperPlane size={14} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1700,6 +1586,23 @@ Conclusion: By 2035, AI will not be a separate technology we “use,” but a wo
           /* Textarea focus styles */
           textarea:focus {
             outline: none;
+          }
+
+          /* Animate textarea resizing for smooth expand/shrink */
+          textarea {
+            transition: height 160ms ease, min-height 160ms ease, max-height 160ms ease;
+            overflow: hidden; /* prevents odd scroll flashes during transition */
+          }
+
+          /* Landing input wrapper focus style - subtle ring but no giant rect */
+          .landing-input-wrapper:focus-within {
+            box-shadow: 0 6px 24px rgba(79, 70, 229, 0.12);
+            border-color: rgba(79, 70, 229, 0.18) !important;
+          }
+
+          /* Allow textareas to scroll when content exceeds max-height */
+          textarea {
+            overflow: auto;
           }
           
           /* Input focus styles */
