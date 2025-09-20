@@ -36,6 +36,7 @@ function Chat() {
   const [hasStartedChat, setHasStartedChat] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const chatContainerRef = useRef(null)
+  const lastMessageRef = useRef(null)
   const inputRef = useRef(null)
   const inputBarRef = useRef(null)
   const [copiedMessageId, setCopiedMessageId] = useState(null)
@@ -826,6 +827,18 @@ function Chat() {
     return () => container.removeEventListener('click', onClick)
   }, [messages])
 
+  // Auto-scroll to last message when messages change
+  useEffect(() => {
+    if (!lastMessageRef.current || !chatContainerRef.current) return
+    try {
+      // smooth scroll the last message into view
+      lastMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    } catch (e) {
+      // fallback
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
+  }, [messages])
+
   // Ensure textarea height resets when content is cleared programmatically or by user
   useEffect(() => {
     const ta = inputRef.current
@@ -849,6 +862,40 @@ function Chat() {
     if (hasStartedChat && inputRef.current) {
       // slight timeout to ensure textarea is mounted and any layout changes applied
       setTimeout(() => inputRef.current.focus(), 50)
+    }
+  }, [hasStartedChat])
+
+  // Keep chat container bottom padding in sync with the input bar height
+  useEffect(() => {
+    const container = chatContainerRef.current
+    const bar = inputBarRef.current
+    if (!container || !bar) return
+
+    const applyPadding = () => {
+      const rect = bar.getBoundingClientRect()
+      // add margin so messages aren't flush against the input
+      const pad = Math.ceil(rect.height + 12)
+      container.style.paddingBottom = pad + 'px'
+    }
+
+    applyPadding()
+
+    let ro
+    if (window.ResizeObserver) {
+      ro = new ResizeObserver(applyPadding)
+      ro.observe(bar)
+    } else {
+      // fallback: poll occasionally while chat is open
+      const id = setInterval(applyPadding, 300)
+      ro = { disconnect: () => clearInterval(id) }
+    }
+
+    // also reapply when window resizes
+    window.addEventListener('resize', applyPadding)
+
+    return () => {
+      ro && ro.disconnect && ro.disconnect()
+      window.removeEventListener('resize', applyPadding)
     }
   }, [hasStartedChat])
 
@@ -1396,6 +1443,8 @@ function Chat() {
                 )}
               </div>
             ))}
+            {/* Attach a dummy anchor at the end to ensure scrollIntoView always has a target */}
+            <div ref={lastMessageRef} />
           </div>
         )}
 
