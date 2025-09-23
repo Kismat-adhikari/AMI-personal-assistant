@@ -8,15 +8,19 @@ import {
   FaTimes,
   FaPaperPlane,
   FaMicrophone,
+  FaImage,
+  FaFileUpload,
+  FaBook,
   FaHome,
   FaHistory,
   FaCog,
-  FaRobot,
   FaUser,
   FaCopy,
   FaCheck,
   FaRedo,
+  FaRobot,
 } from "react-icons/fa"
+import { HiOutlinePhotograph, HiOutlineCloudUpload, HiOutlineBookOpen } from 'react-icons/hi'
 
 function Chat() {
   // Sidebar states
@@ -36,6 +40,8 @@ function Chat() {
   const inputRef = useRef(null)
   const inputBarRef = useRef(null)
   const [copiedMessageId, setCopiedMessageId] = useState(null)
+  const [plusMenuOpen, setPlusMenuOpen] = useState(false)
+  const [plusMenuAnchor, setPlusMenuAnchor] = useState(null) // 'landing' or 'bottom'
 
   // Quick suggestion options
   const quickSuggestions = [
@@ -90,6 +96,33 @@ function Chat() {
   const handleMicClick = () => {
     console.log("Mic clicked - implement voice recording")
   }
+
+  const handlePlusClick = () => {
+    console.log('Plus (+) clicked - implement add/attachment action')
+  }
+
+  const togglePlusMenu = (anchor) => {
+    setPlusMenuAnchor(anchor)
+    setPlusMenuOpen((v) => (v && plusMenuAnchor === anchor ? false : true))
+  }
+
+  useEffect(() => {
+    function onDocClick(e) {
+      // close when clicking outside the menu or the plus buttons
+      if (!plusMenuOpen) return
+      const menu = document.querySelector('.plus-menu')
+      const plusBtns = document.querySelectorAll('[aria-label="Add"]')
+      if (menu && !menu.contains(e.target)) {
+        // allow clicks on the plus buttons to toggle
+        let clickedPlus = false
+        plusBtns.forEach((b) => { if (b.contains(e.target)) clickedPlus = true })
+        if (!clickedPlus) setPlusMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('click', onDocClick)
+    return () => document.removeEventListener('click', onDocClick)
+  }, [plusMenuOpen, plusMenuAnchor])
 
   // Safe logout placeholder to avoid runtime ReferenceError when button is clicked
   const handleLogout = () => {
@@ -1102,7 +1135,57 @@ function Chat() {
                     }}
                   >
                     {/* Grid layout for landing input: mic | textarea | send - prevents overlap */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 40px', alignItems: 'center', gap: '10px', padding: '6px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '40px 40px 1fr 40px', alignItems: 'center', gap: '10px', padding: '6px' }}>
+                      <div style={{ position: 'relative' }}>
+                        <button
+                          onClick={() => togglePlusMenu('landing')}
+                          style={{
+                            background: 'rgba(107, 114, 128, 0.1)',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '36px',
+                            height: '36px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            color: '#6b7280',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(79, 70, 229, 0.08)'
+                            e.currentTarget.style.color = '#4f46e5'
+                            e.currentTarget.style.transform = 'scale(1.05)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(107, 114, 128, 0.1)'
+                            e.currentTarget.style.color = '#6b7280'
+                            e.currentTarget.style.transform = 'scale(1)'
+                          }}
+                          aria-label="Add"
+                        >
+                          <FaPlus size={12} />
+                        </button>
+
+                        {plusMenuOpen && plusMenuAnchor === 'landing' && (
+                          <div className="plus-menu" style={{ position: 'absolute', bottom: '56px', left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(180deg,#ffffff 0%, #f8fafc 100%)', color: '#0f172a', borderRadius: '10px', boxShadow: '0 10px 30px rgba(2,6,23,0.16)', minWidth: '220px', overflow: 'visible', zIndex: 200 }}>
+                            <div style={{ position: 'absolute', bottom: '-8px', left: '50%', transform: 'translateX(-50%) rotate(45deg)', width: '16px', height: '16px', background: 'linear-gradient(180deg,#ffffff 0%, #f8fafc 100%)', boxShadow: '0 6px 16px rgba(2,6,23,0.06)' }} />
+                            <button onClick={() => console.log('Upload image')} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px 14px', width: '100%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                              <HiOutlinePhotograph style={{ color: '#7c3aed', minWidth: '20px' }} />
+                              <span style={{ fontWeight: 600 }}>Upload image</span>
+                            </button>
+                            <button onClick={() => console.log('Upload file')} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px 14px', width: '100%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                              <HiOutlineCloudUpload style={{ color: '#4f46e5', minWidth: '20px' }} />
+                              <span style={{ fontWeight: 600 }}>Upload file</span>
+                            </button>
+                            <button onClick={() => console.log('Study mode')} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px 14px', width: '100%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                              <HiOutlineBookOpen style={{ color: '#10b981', minWidth: '20px' }} />
+                              <span style={{ fontWeight: 600 }}>Study mode</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
                       <button
                         onClick={handleMicClick}
                         style={{
@@ -1498,11 +1581,61 @@ function Chat() {
                   borderRadius: "24px",
                   boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
                   border: "2px solid rgba(79, 70, 229, 0.1)",
-                  overflow: "hidden",
+                  overflow: "visible", /* allow the + menu to overflow above the container */
                 }}
               >
                 {/* Grid layout: mic | textarea | send - avoids overlap */}
-                <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr 44px', alignItems: 'center', gap: '12px', padding: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '44px 44px 1fr 44px', alignItems: 'center', gap: '12px', padding: '8px' }}>
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => togglePlusMenu('bottom')}
+                      style={{
+                        background: 'rgba(107, 114, 128, 0.08)',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '36px',
+                        height: '36px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        color: '#6b7280',
+                      }}
+                      aria-label="Add"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(79, 70, 229, 0.08)'
+                        e.currentTarget.style.color = '#4f46e5'
+                        e.currentTarget.style.transform = 'scale(1.05)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(107, 114, 128, 0.08)'
+                        e.currentTarget.style.color = '#6b7280'
+                        e.currentTarget.style.transform = 'scale(1)'
+                      }}
+                    >
+                      <FaPlus size={12} />
+                    </button>
+
+                    {plusMenuOpen && plusMenuAnchor === 'bottom' && (
+                      <div className="plus-menu" style={{ position: 'absolute', bottom: '56px', left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(180deg,#ffffff 0%, #f8fafc 100%)', color: '#0f172a', borderRadius: '10px', boxShadow: '0 10px 30px rgba(2,6,23,0.16)', minWidth: '220px', overflow: 'visible', zIndex: 200 }}>
+                        <div style={{ position: 'absolute', bottom: '-8px', left: '50%', transform: 'translateX(-50%) rotate(45deg)', width: '16px', height: '16px', background: 'linear-gradient(180deg,#ffffff 0%, #f8fafc 100%)', boxShadow: '0 6px 16px rgba(2,6,23,0.06)' }} />
+                        <button onClick={() => console.log('Upload image')} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px 14px', width: '100%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                          <HiOutlinePhotograph style={{ color: '#7c3aed', minWidth: '20px' }} />
+                          <span style={{ fontWeight: 600 }}>Upload image</span>
+                        </button>
+                        <button onClick={() => console.log('Upload file')} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px 14px', width: '100%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                          <HiOutlineCloudUpload style={{ color: '#4f46e5', minWidth: '20px' }} />
+                          <span style={{ fontWeight: 600 }}>Upload file</span>
+                        </button>
+                        <button onClick={() => console.log('Study mode')} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px 14px', width: '100%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                          <HiOutlineBookOpen style={{ color: '#10b981', minWidth: '20px' }} />
+                          <span style={{ fontWeight: 600 }}>Study mode</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   <button
                     onClick={handleMicClick}
                     style={{
