@@ -23,12 +23,8 @@ function Chat() {
   const [collapsed, setCollapsed] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [conversations] = useState([
-    { id: 1, title: "Getting started with AMI", timestamp: "2 hours ago" },
-    { id: 2, title: "Help me plan my day", timestamp: "1 day ago" },
-    { id: 3, title: "Email management tips", timestamp: "2 days ago" },
-    { id: 4, title: "Calendar scheduling", timestamp: "3 days ago" },
-  ])
+  // start with no saved conversations; show a helpful placeholder when empty
+  const [conversations] = useState([])
 
   // Chat states
   const [messages, setMessages] = useState([])
@@ -397,42 +393,48 @@ function Chat() {
                 Recent Conversations
               </h3>
 
-              {conversations.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  style={{
-                    padding: "0.875rem 1rem",
-                    margin: "0 0 0.5rem 0",
-                    cursor: "pointer",
-                    borderRadius: "10px",
-                    transition: "all 0.2s ease",
-                    border: "1px solid transparent",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.1)"
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent"
-                    e.currentTarget.style.borderColor = "transparent"
-                  }}
-                >
+              {conversations.length === 0 ? (
+                <div style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)', padding: '0.5rem 1rem' }}>
+                  Start a conversation to have a chat history
+                </div>
+              ) : (
+                conversations.map((conversation) => (
                   <div
+                    key={conversation.id}
                     style={{
-                      fontSize: "0.9rem",
-                      fontWeight: "500",
-                      color: "#ffffff",
-                      marginBottom: "0.25rem",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
+                      padding: "0.875rem 1rem",
+                      margin: "0 0 0.5rem 0",
+                      cursor: "pointer",
+                      borderRadius: "10px",
+                      transition: "all 0.2s ease",
+                      border: "1px solid transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(255,255,255,0.1)"
+                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent"
+                      e.currentTarget.style.borderColor = "transparent"
                     }}
                   >
-                    {conversation.title}
+                    <div
+                      style={{
+                        fontSize: "0.9rem",
+                        fontWeight: "500",
+                        color: "#ffffff",
+                        marginBottom: "0.25rem",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {conversation.title}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)" }}>{conversation.timestamp}</div>
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)" }}>{conversation.timestamp}</div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
             <div style={{ padding: "1rem" }}>
@@ -514,31 +516,32 @@ function Chat() {
         {!collapsed && (
           <div
             style={{
-              padding: "4.5rem 1.5rem 2rem",
+              // make header compact so it sits near the top beside the collapse button
+              padding: "1.25rem 1.25rem 1rem",
               borderBottom: "1px solid rgba(255,255,255,0.1)",
-              marginBottom: "1rem",
+              marginBottom: "0.5rem",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
               <div
                 style={{
                   background: "rgba(255,255,255,0.2)",
-                  padding: "0.5rem",
-                  borderRadius: "12px",
+                  padding: "0.35rem",
+                  borderRadius: "10px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <FaRobot size={20} />
+                <FaRobot size={16} />
               </div>
               <div>
                 <h2
                   style={{
                     margin: 0,
-                    fontSize: "1.4rem",
+                    fontSize: "1.1rem",
                     fontWeight: "700",
-                    letterSpacing: "-0.025em",
+                    letterSpacing: "-0.02em",
                   }}
                 >
                   AMI Assistant
@@ -546,7 +549,7 @@ function Chat() {
                 <p
                   style={{
                     margin: 0,
-                    fontSize: "0.85rem",
+                    fontSize: "0.8rem",
                     opacity: 0.8,
                     fontWeight: "400",
                   }}
@@ -558,7 +561,7 @@ function Chat() {
           </div>
         )}
 
-        {collapsed && <div style={{ height: "5rem" }} />}
+  {collapsed && <div style={{ height: "3rem" }} />}
 
         {!collapsed && (
           <div style={{ padding: "0 1rem 1.5rem" }}>
@@ -611,42 +614,48 @@ function Chat() {
                 Recent Conversations
               </h3>
 
-              {conversations.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  style={{
-                    padding: "0.875rem 1rem",
-                    margin: "0 0 0.5rem 0",
-                    cursor: "pointer",
-                    borderRadius: "10px",
-                    transition: "all 0.2s ease",
-                    border: "1px solid transparent",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.1)"
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent"
-                    e.currentTarget.style.borderColor = "transparent"
-                  }}
-                >
+              {conversations.length === 0 ? (
+                <div style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.8)', padding: '0.5rem 1rem' }}>
+                  Start a conversation to have a chat history
+                </div>
+              ) : (
+                conversations.map((conversation) => (
                   <div
+                    key={conversation.id}
                     style={{
-                      fontSize: "0.9rem",
-                      fontWeight: "500",
-                      color: "#ffffff",
-                      marginBottom: "0.25rem",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
+                      padding: "0.875rem 1rem",
+                      margin: "0 0 0.5rem 0",
+                      cursor: "pointer",
+                      borderRadius: "10px",
+                      transition: "all 0.2s ease",
+                      border: "1px solid transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(255,255,255,0.1)"
+                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent"
+                      e.currentTarget.style.borderColor = "transparent"
                     }}
                   >
-                    {conversation.title}
+                    <div
+                      style={{
+                        fontSize: "0.9rem",
+                        fontWeight: "500",
+                        color: "#ffffff",
+                        marginBottom: "0.25rem",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {conversation.title}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)" }}>{conversation.timestamp}</div>
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)" }}>{conversation.timestamp}</div>
-                </div>
-              ))}
+                ))
+              )}
             </>
           )}
 
