@@ -72,10 +72,9 @@ function Chat() {
       const focus = sel.focusNode
       if (!(nodeHasAssistantAncestor(anchor) || nodeHasAssistantAncestor(focus))) return
 
-      // set the quoted message to the selected text and populate input
-      const selectedText = selected
-      setQuotedMessage({ id: Date.now(), text: selectedText })
-      setInputValue(selectedText)
+  // set the quoted message to the selected text but do NOT populate the input
+  const selectedText = selected
+  setQuotedMessage({ id: Date.now(), text: selectedText })
       setShowAskFloating(false)
       // focus textarea so user can edit/send
       setTimeout(() => inputRef.current && inputRef.current.focus(), 40)
@@ -102,6 +101,8 @@ function Chat() {
       id: Date.now(),
       text: textToSend,
       sender: 'user',
+      // attach quoted message if present
+      quoted: quotedMessage || null,
       timestamp: new Date(),
     }
 
@@ -123,6 +124,8 @@ function Chat() {
     }, 600)
 
     setInputValue('')
+    // clear quoted message after sending
+    setQuotedMessage(null)
   }
 
   const handleSuggestionClick = (suggestion) => {
@@ -1586,6 +1589,18 @@ function Chat() {
                       position: "relative",
                     }}
                   >
+                  {/* If this is a user message that includes a quoted payload, render the quoted block above the bubble */}
+                  {message.sender === 'user' && message.quoted && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+                      <div style={{ maxWidth: isMobile ? '84%' : '64%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', background: 'rgba(255,255,255,0.98)', padding: '8px 12px', borderRadius: 12, border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 6px 18px rgba(2,6,23,0.04)', color: '#374151', fontSize: 13 }} title={message.quoted.text}>
+                          <div style={{ width: 4, height: '100%', background: '#e6edf8', borderRadius: 2, marginRight: 10 }} />
+                          <div style={{ flex: 1, wordBreak: 'break-word', whiteSpace: 'normal' }}>{message.quoted.text}</div>
+                        </div>
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280', textAlign: 'right' }}>Quoted</div>
+                      </div>
+                    </div>
+                  )}
                   <div
                     {...(message.sender === "assistant" ? { "data-ami-assistant": "true" } : {})}
                     onMouseDown={message.sender === 'assistant' ? (e) => {
