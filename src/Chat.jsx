@@ -6,6 +6,7 @@ import {
   FaBars,
   FaChevronLeft,
   FaTimes,
+  FaArrowRight,
   FaPaperPlane,
   FaMicrophone,
   FaImage,
@@ -38,10 +39,52 @@ function Chat() {
   const chatContainerRef = useRef(null)
   const lastMessageRef = useRef(null)
   const inputRef = useRef(null)
+  const selectionDuringMouseDownRef = useRef('')
   const inputBarRef = useRef(null)
   const [copiedMessageId, setCopiedMessageId] = useState(null)
   const [plusMenuOpen, setPlusMenuOpen] = useState(false)
   const [plusMenuAnchor, setPlusMenuAnchor] = useState(null) // 'landing' or 'bottom'
+
+  // Ask ChatGPT floating hint states (keep only floating affordance)
+  const [showAskFloating, setShowAskFloating] = useState(false)
+  const [askFloatingPos, setAskFloatingPos] = useState({ x: 0, y: 0 })
+  // Make the floating Ask button non-interactive while selection is being dragged
+  const [askClickable, setAskClickable] = useState(false)
+  // Preview state for Ask ChatGPT selection behavior
+  // (preview removed) - keep only floating Ask affordance
+
+  // Handler: when user clicks the floating Ask button, capture selection into input
+  const handleAskSelection = () => {
+    try {
+      const sel = window.getSelection()
+      const selected = sel ? sel.toString().trim() : ''
+      if (!selected) return
+      // Only act if the selection is inside an assistant message
+      function nodeHasAssistantAncestor(node) {
+        while (node) {
+          if (node.getAttribute && node.getAttribute('data-ami-assistant') === 'true') return true
+          node = node.parentNode
+        }
+        return false
+      }
+
+      const anchor = sel.anchorNode
+      const focus = sel.focusNode
+      if (!(nodeHasAssistantAncestor(anchor) || nodeHasAssistantAncestor(focus))) return
+
+      // set the quoted message to the selected text and populate input
+      const selectedText = selected
+      setQuotedMessage({ id: Date.now(), text: selectedText })
+      setInputValue(selectedText)
+      setShowAskFloating(false)
+      // focus textarea so user can edit/send
+      setTimeout(() => inputRef.current && inputRef.current.focus(), 40)
+    } catch (e) {
+      console.warn('handleAskSelection failed', e)
+    }
+  }
+
+  // preview UI removed; Ask AMI floating button remains and no longer inserts text above input
 
   // Quick suggestion options
   const quickSuggestions = [
@@ -467,7 +510,8 @@ function Chat() {
                     <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)" }}>{conversation.timestamp}</div>
                   </div>
                 ))
-              )}
+              )
+            }
             </div>
 
             <div style={{ padding: "1rem" }}>
@@ -688,7 +732,8 @@ function Chat() {
                     <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)" }}>{conversation.timestamp}</div>
                   </div>
                 ))
-              )}
+              )
+            }
             </>
           )}
 
@@ -881,6 +926,74 @@ function Chat() {
     }
   }, [messages])
 
+  // Show floating Ask button only when the user selects text inside an assistant message
+  useEffect(() => {
+    function nodeHasAssistantAncestor(node) {
+      while (node) {
+        if (node.getAttribute && node.getAttribute('data-ami-assistant') === 'true') return true
+        node = node.parentNode
+      }
+      return false
+    }
+
+    // debounce so we don't re-render while user is actively dragging selection
+    const selectionTimerRef = { current: null }
+
+    function onSelectionChange() {
+      try {
+        const sel = window.getSelection()
+        const text = sel ? sel.toString().trim() : ''
+        if (!text) {
+          setShowAskFloating(false)
+          return
+        }
+
+        const range = sel.rangeCount ? sel.getRangeAt(0) : null
+        if (!range) {
+          setShowAskFloating(false)
+          return
+        }
+
+        const rect = range.getBoundingClientRect()
+        if (!rect || rect.width === 0 || rect.height === 0) {
+          setShowAskFloating(false)
+          return
+        }
+
+        const x = Math.min(window.innerWidth - 60, rect.right + window.scrollX - 36)
+        const y = Math.max(8, rect.top + window.scrollY - 48)
+        setAskFloatingPos({ x, y })
+        setShowAskFloating(true)
+      } catch (e) {
+        console.warn('Error in onSelectionChange:', e)
+        setShowAskFloating(false)
+      }
+    }
+
+    document.addEventListener('selectionchange', onSelectionChange)
+    return () => {
+      document.removeEventListener('selectionchange', onSelectionChange)
+    }
+  }, [])
+
+  // Enable the Ask button only after mouseup/touchend so it doesn't steal the mouseup event
+  useEffect(() => {
+    function onEnd() {
+      // slight delay to allow selection to settle
+      setTimeout(() => setAskClickable(true), 10)
+    }
+
+    document.addEventListener('mouseup', onEnd)
+    document.addEventListener('touchend', onEnd)
+
+    return () => {
+      document.removeEventListener('mouseup', onEnd)
+      document.removeEventListener('touchend', onEnd)
+    }
+  }, [])
+
+  // (Removed Ask panel/modal — keep only floating affordance)
+
   // Ensure textarea height resets when content is cleared programmatically or by user
   useEffect(() => {
     const ta = inputRef.current
@@ -941,9 +1054,69 @@ function Chat() {
     }
   }, [hasStartedChat])
 
+  const [quotedMessage, setQuotedMessage] = useState(null)
+
+  const handleQuoteMessage = (message) => {
+    setQuotedMessage(message)
+    setTimeout(() => inputRef.current && inputRef.current.focus(), 40)
+  }
+
+  // Click handler for assistant messages: if the user has an active text selection, don't treat it as a whole-message click
+  const handleAssistantClick = (message) => (e) => {
+    try {
+      // If the user currently has a selection (e.g. clicked-and-dragged text),
+      // do not treat this as a plain click. Returning here avoids moving
+      // focus to the input, which collapses the page selection.
+      const sel = window.getSelection && window.getSelection()
+      const selected = sel ? (sel.toString && sel.toString().trim()) : ''
+      if (selected) {
+        // let selection remain — do nothing on click
+        return
+      }
+
+      // No active selection: focus the input so user can type
+      setTimeout(() => inputRef.current && inputRef.current.focus(), 40)
+      return
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  const clearQuotedMessage = () => {
+    setQuotedMessage(null)
+  }
+
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
       {renderSidebar()}
+
+      {/* Floating Ask button shown when text is selected inside an assistant message (no-op) */}
+      {showAskFloating && (
+        <button
+          onMouseDown={(e) => { e.preventDefault(); /* keep selection when clicking */ }}
+          onClick={(e) => {
+            e.preventDefault()
+            if (!askClickable) return
+            handleAskSelection()
+          }}
+          title="Ask AMI about selection"
+          style={{
+            position: 'absolute',
+            left: askFloatingPos.x,
+            top: askFloatingPos.y,
+            zIndex: 1200,
+            background: 'linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%)',
+            color: 'white',
+            border: 'none',
+            padding: '8px 10px',
+            borderRadius: '999px',
+            boxShadow: '0 6px 18px rgba(79,70,229,0.28)',
+            cursor: 'pointer',
+          }}
+        >
+          Ask AMI
+        </button>
+      )}
 
       <div
         style={{
@@ -1376,6 +1549,29 @@ function Chat() {
                     }}
                   >
                   <div
+                    {...(message.sender === "assistant" ? { "data-ami-assistant": "true" } : {})}
+                    onMouseDown={message.sender === 'assistant' ? (e) => {
+                      try {
+                        const sel = window.getSelection()
+                        selectionDuringMouseDownRef.current = sel ? sel.toString() : ''
+                      } catch (err) { selectionDuringMouseDownRef.current = '' }
+                    } : undefined}
+                    onTouchStart={message.sender === 'assistant' ? (e) => {
+                      try {
+                        const sel = window.getSelection()
+                        selectionDuringMouseDownRef.current = sel ? sel.toString() : ''
+                      } catch (err) { selectionDuringMouseDownRef.current = '' }
+                    } : undefined}
+                    onMouseUp={message.sender === 'assistant' ? (e) => {
+                      // clear shortly after mouse up so click can check it
+                      setTimeout(() => { selectionDuringMouseDownRef.current = '' }, 10)
+                    } : undefined}
+                    onTouchEnd={message.sender === 'assistant' ? (e) => {
+                      setTimeout(() => { selectionDuringMouseDownRef.current = '' }, 10)
+                    } : undefined}
+                    onClick={message.sender === 'assistant' ? handleAssistantClick({ id: message.id, text: (message.html ? extractTextFromHtml(message.html) : message.text) || '' }) : undefined}
+                    role={message.sender === 'assistant' ? 'button' : undefined}
+                    tabIndex={message.sender === 'assistant' ? 0 : undefined}
                     style={{
                       padding: isMobile ? "0.9rem 1rem" : "1.25rem 1.5rem",
                       borderRadius: message.sender === "user" ? "20px 20px 6px 20px" : "20px 20px 20px 6px",
@@ -1398,6 +1594,8 @@ function Chat() {
                           ? "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)"
                           : "rgba(255, 255, 255, 0.95)",
                       position: "relative",
+                      position: "relative",
+                      cursor: message.sender === 'assistant' ? 'pointer' : 'default',
                     }}
                   >
                     {(() => {
@@ -1584,6 +1782,7 @@ function Chat() {
                   overflow: "visible", /* allow the + menu to overflow above the container */
                 }}
               >
+                {/* Ask preview removed - keep only floating Ask button */}
                 {/* Grid layout: mic | textarea | send - avoids overlap */}
                 <div style={{ display: 'grid', gridTemplateColumns: '44px 44px 1fr 44px', alignItems: 'center', gap: '12px', padding: '8px' }}>
                   <div style={{ position: 'relative' }}>
@@ -1665,46 +1864,51 @@ function Chat() {
                   >
                     <FaMicrophone size={14} />
                   </button>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {quotedMessage && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f3f4f6', padding: '8px 12px', borderRadius: 12, border: '1px solid #e6e9ef', maxWidth: '100%', boxSizing: 'border-box' }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 8, background: 'linear-gradient(135deg,#eef2ff 0%,#ede9fe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5', flex: '0 0 36px' }}>
+                          <FaArrowRight size={14} />
+                        </div>
+                        <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#111827', fontSize: 13 }} title={quotedMessage.text}>{quotedMessage.text}</div>
+                        <button onClick={clearQuotedMessage} aria-label="Clear quoted message" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
+                          <FaTimes />
+                        </button>
+                      </div>
+                    )}
 
-                  <textarea
-                    ref={inputRef}
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Type your message..."
-                    style={{
-                      width: '100%',
-                      minHeight: '40px',
-                      maxHeight: '220px',
-                      padding: '12px 8px',
-                      border: 'none',
-                      outline: 'none',
-                      fontSize: '0.95rem',
-                      lineHeight: '1.4',
-                      resize: 'none',
-                      backgroundColor: 'transparent',
-                      fontFamily: 'inherit',
-                      color: '#374151',
-                      fontWeight: '400',
-                    }}
-                    rows={1}
-                    onInput={(e) => {
-                      if (!e.target.value) {
-                        e.target.style.height = '40px'
-                      } else {
-                        e.target.style.height = 'auto'
-                        e.target.style.height = Math.min(e.target.scrollHeight, 220) + 'px'
-                      }
-                    }}
-                    onFocus={(e) => {
-                      e.target.parentElement.parentElement.style.borderColor = 'rgba(79, 70, 229, 0.3)'
-                      e.target.parentElement.parentElement.style.boxShadow = '0 4px 20px rgba(79, 70, 229, 0.15)'
-                    }}
-                    onBlur={(e) => {
-                      e.target.parentElement.parentElement.style.borderColor = 'rgba(79, 70, 229, 0.1)'
-                      e.target.parentElement.parentElement.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)'
-                    }}
-                  />
+                    <textarea
+                      ref={inputRef}
+                      value={inputValue}
+                      onInput={(e) => {
+                        const val = e.target.value
+                        setInputValue(val)
+                        // auto-resize
+                        try {
+                          e.target.style.height = 'auto'
+                          const h = Math.min(e.target.scrollHeight, 220)
+                          e.target.style.height = h + 'px'
+                        } catch (err) {}
+                      }}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Type your message..."
+                      style={{
+                        width: '100%',
+                        minHeight: '40px',
+                        maxHeight: '220px',
+                        padding: '12px 8px',
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: '0.95rem',
+                        lineHeight: '1.4',
+                        resize: 'none',
+                        backgroundColor: 'transparent',
+                        fontFamily: 'inherit',
+                        color: '#374151',
+                        fontWeight: '400',
+                      }}
+                    />
+                  </div>
 
                   <button
                     onClick={() => handleSendMessage()}
@@ -1734,6 +1938,7 @@ function Chat() {
         )}
 
         {/* CSS Animations and Styles */}
+
         <style jsx>{`
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
           
@@ -1850,22 +2055,9 @@ function Chat() {
             border-radius: 8px;
           }
 
-          .message-content table {
-            width: 100% !important;
-            max-width: 100%;
-            overflow: auto;
-            display: block;
-          }
-
-          .message-content img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-          }
-          
           /* Focus ring for accessibility */
           button:focus-visible {
-            outline: 2px solid rgba(79, 70, 229, 0.5);
+            outline: 2px solid rgba(79,70,229,0.5);
             outline-offset: 2px;
           }
           
@@ -2204,7 +2396,7 @@ function Chat() {
         `}</style>
       </div>
     </div>
-  )
+  );
 }
 
 export default Chat
