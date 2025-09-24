@@ -1595,7 +1595,7 @@ function Chat() {
                       <div style={{ maxWidth: isMobile ? '84%' : '64%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', background: 'rgba(255,255,255,0.98)', padding: '8px 12px', borderRadius: 12, border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 6px 18px rgba(2,6,23,0.04)', color: '#374151', fontSize: 13 }} title={message.quoted.text}>
                           <div style={{ width: 4, height: '100%', background: '#e6edf8', borderRadius: 2, marginRight: 10 }} />
-                          <div style={{ flex: 1, wordBreak: 'break-word', whiteSpace: 'normal', color: '#6b7280', fontStyle: 'italic' }}>
+                          <div style={{ flex: 1, wordBreak: 'break-word', whiteSpace: 'normal' }}>
                             {(() => {
                               const words = message.quoted.text.split(/\s+/);
                               if (words.length > 30) {
