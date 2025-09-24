@@ -1595,7 +1595,16 @@ function Chat() {
                       <div style={{ maxWidth: isMobile ? '84%' : '64%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', background: 'rgba(255,255,255,0.98)', padding: '8px 12px', borderRadius: 12, border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 6px 18px rgba(2,6,23,0.04)', color: '#374151', fontSize: 13 }} title={message.quoted.text}>
                           <div style={{ width: 4, height: '100%', background: '#e6edf8', borderRadius: 2, marginRight: 10 }} />
-                          <div style={{ flex: 1, wordBreak: 'break-word', whiteSpace: 'normal' }}>{message.quoted.text}</div>
+                          <div style={{ flex: 1, wordBreak: 'break-word', whiteSpace: 'normal', color: '#6b7280', fontStyle: 'italic' }}>
+                            {(() => {
+                              const words = message.quoted.text.split(/\s+/);
+                              if (words.length > 30) {
+                                return words.slice(0, 30).join(' ') + '...';
+                              } else {
+                                return message.quoted.text;
+                              }
+                            })()}
+                          </div>
                         </div>
                         <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280', textAlign: 'right' }}>Quoted</div>
                       </div>
@@ -1923,7 +1932,30 @@ function Chat() {
                         <div style={{ width: 36, height: 36, borderRadius: 8, background: 'linear-gradient(135deg,#eef2ff 0%,#ede9fe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5', flex: '0 0 36px' }}>
                           <FaArrowRight size={14} />
                         </div>
-                        <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#111827', fontSize: 13 }} title={quotedMessage.text}>{quotedMessage.text}</div>
+                        <div
+                          style={{
+                            flex: 1,
+                            overflow: 'hidden',
+                            color: '#6b7280',
+                            fontSize: 13,
+                            fontStyle: 'italic',
+                            wordBreak: 'break-word',
+                            whiteSpace: 'pre-wrap',
+                            lineHeight: 1.4,
+                            maxHeight: 60,
+                            display: 'block',
+                          }}
+                          title={quotedMessage.text}
+                        >
+                          {(() => {
+                            const words = quotedMessage.text.split(/\s+/);
+                            if (words.length > 30) {
+                              return words.slice(0, 30).join(' ') + '...';
+                            } else {
+                              return quotedMessage.text;
+                            }
+                          })()}
+                        </div>
                         <button onClick={clearQuotedMessage} aria-label="Clear quoted message" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
                           <FaTimes />
                         </button>
