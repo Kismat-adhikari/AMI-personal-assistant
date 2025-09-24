@@ -936,14 +936,54 @@ function Chat() {
       return false
     }
 
-    // debounce so we don't re-render while user is actively dragging selection
-    const selectionTimerRef = { current: null }
-
     function onSelectionChange() {
       try {
+        // First, handle textarea (input) selection which doesn't use document selection
+        const ta = inputRef.current
+        if (ta && document.activeElement === ta) {
+          try {
+            const start = ta.selectionStart
+            const end = ta.selectionEnd
+            if (typeof start === 'number' && typeof end === 'number' && end > start) {
+              const selText = ta.value.slice(start, end).trim()
+              if (selText) {
+                // position the floating button near the input's top-right for simplicity
+                const r = ta.getBoundingClientRect()
+                const x = Math.min(window.innerWidth - 60, r.right + window.scrollX - 36)
+                const y = Math.max(8, r.top + window.scrollY - 48)
+                setAskFloatingPos({ x, y })
+                setShowAskFloating(true)
+                return
+              }
+            }
+          } catch (e) {
+            // ignore textarea selection errors and continue to document selection
+          }
+        }
+
+        // Fallback: check document selection (for assistant message text)
         const sel = window.getSelection()
         const text = sel ? sel.toString().trim() : ''
         if (!text) {
+          setShowAskFloating(false)
+          return
+        }
+
+        const anchor = sel.anchorNode
+        const focus = sel.focusNode
+        // Ensure the selection is fully contained inside the same assistant message.
+        function getAssistantAncestor(node) {
+          while (node) {
+            if (node.getAttribute && node.getAttribute('data-ami-assistant') === 'true') return node
+            node = node.parentNode
+          }
+          return null
+        }
+
+        const ancA = getAssistantAncestor(anchor)
+        const ancF = getAssistantAncestor(focus)
+        if (!(ancA && ancF && ancA === ancF)) {
+          // selection either straddles outside the assistant message or is only partially inside -> don't show
           setShowAskFloating(false)
           return
         }
@@ -971,9 +1011,7 @@ function Chat() {
     }
 
     document.addEventListener('selectionchange', onSelectionChange)
-    return () => {
-      document.removeEventListener('selectionchange', onSelectionChange)
-    }
+    return () => document.removeEventListener('selectionchange', onSelectionChange)
   }, [])
 
   // Enable the Ask button only after mouseup/touchend so it doesn't steal the mouseup event
